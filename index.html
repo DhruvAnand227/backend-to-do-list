@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .box {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .container {
+            width: 400px;
+            height: 100px;
+            display: flex;
+            justify-content: space-between;
+            background-color: aqua;
+        }
+
+        .add-input {
+            width: 400px;
+            height: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #task {
+            height: 25px;
+            width: 70%;
+        }
+
+        .add {
+            width: 20%;
+            height: 40px;
+            text-align: center;
+            color: white;
+            background-color: rgb(170, 68, 68);
+            cursor: pointer;
+        }
+
+        .description {
+            width: 60%;
+            font-size: 20px;
+            font-weight: 500;
+            margin: 4px 8px;
+            overflow: auto;
+        }
+
+        .delete-done {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        #delete {
+            width: 60%;
+            height: 40%;
+            background-color: aquamarine;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h1>Welcome to our To-Do-List App</h1>
+        <div class="add-input">
+            <input id="task" type="text" placeholder="Enter your task here">
+            <button class="add">Add Task</button>
+        </div>
+
+        <!--<div class="container">
+            <div class="description">hey</div>
+            <div class="delete-done">
+                <button id="delete">Delete Task</button>
+                <label>
+                    <input type="checkbox" name="taskDone" />
+                    Task Done
+                </label>
+            </div>
+        </div> template for addTask to do -->
+
+    </div>
+
+    <script>
+        let newToDo = document.querySelector(".box");
+
+        //Function that displays the existing tasks
+        async function tasksLeft() {
+            const response = await fetch("/todos", {
+                method: "GET"
+            });
+
+            const data = await response.json();
+            for (let i = 0; i < data.length; i++) {
+                const container = document.createElement('div');
+                container.className = 'container';
+
+                const description = document.createElement('div');
+                description.className = 'description';
+
+                const deleteDone = document.createElement('div');
+                deleteDone.className = 'delete-done';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.id = 'delete';
+                deleteButton.innerText = 'Delete Task';
+
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'taskDone';
+                label.appendChild(checkbox);
+                label.append(' Task Done');
+
+                deleteDone.appendChild(deleteButton);
+                deleteDone.appendChild(label);
+
+                container.appendChild(description);
+                container.appendChild(deleteDone);
+
+                newToDo.appendChild(container);
+
+                container.setAttribute("data_id", data[i]._id);
+                description.innerHTML = data[i].task;
+                checkbox.checked = data[i].isDone;
+
+                //Deleting a new task
+                deleteButton.addEventListener("click", () => {
+                    async function deleteTask() {
+                        //Get the id to delete it from database too
+                        let id = container.getAttribute("data_id");
+
+                        let response = await fetch(`/todos/${id}`, {
+                            method: "DELETE"
+                        });
+                        let result = await response.json();
+
+                        console.log(result);
+                    }
+
+                    deleteTask();
+                    deleteDone.parentNode.remove();
+                })
+
+                //Task is done or not using checkbox
+                checkbox.addEventListener("click", async () => {
+                    let id = container.getAttribute("data_id");
+
+                    const response = await fetch(`/todos/${id}`, {
+                        method: "PUT",
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isDone: checkbox.checked })
+                    })
+                    const data = await response.json();
+                    console.log(data);
+                })
+            }
+
+        }
+
+        tasksLeft();
+
+        //Adding a new task
+        document.querySelector(".add").addEventListener("click", () => {
+            let value = document.getElementById("task").value;
+
+            //A template of this is provided in HTML code
+            const container = document.createElement('div');
+            container.className = 'container';
+
+            const description = document.createElement('div');
+            description.className = 'description';
+            description.innerText = value;
+
+            const deleteDone = document.createElement('div');
+            deleteDone.className = 'delete-done';
+
+            const deleteButton = document.createElement('button');
+            deleteButton.id = 'delete';
+            deleteButton.innerText = 'Delete Task';
+
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'taskDone';
+            label.appendChild(checkbox);
+            label.append(' Task Done');
+
+            deleteDone.appendChild(deleteButton);
+            deleteDone.appendChild(label);
+
+            container.appendChild(description);
+            container.appendChild(deleteDone);
+
+            newToDo.appendChild(container);
+
+            document.getElementById("task").value = "";
+
+            //Deleting a new task
+            deleteButton.addEventListener("click", () => {
+                async function deleteTask() {
+                    //Get the id to delete it from database too
+                    let id = container.getAttribute("data_id");
+
+                    let response = await fetch(`/todos/${id}`, {
+                        method: "DELETE"
+                    });
+                    let result = await response.json();
+
+                    console.log(result);
+                }
+
+                deleteTask();
+                deleteDone.parentNode.remove();
+            })
+
+            //Task is done or not using checkbox
+            checkbox.addEventListener("click", async () => {
+                let id = container.getAttribute("data_id");
+
+                const response = await fetch(`/todos/${id}`, {
+                    method: "PUT",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isDone: checkbox.checked })
+                })
+                const data = await response.json();
+                console.log(data);
+            })
+
+            async function addTask() {
+                let response = await fetch('/add', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ task: value, isDone: false })
+                })
+                let data = await response.json();
+                console.log(data);
+
+                //Store the id to help it in delete task to delete it from database
+                container.setAttribute("data_id", data._id);
+            }
+
+            addTask();
+
+        })
+
+    </script>
+</body>
+
+</html>
