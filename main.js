@@ -2,8 +2,6 @@ const express = require("express")
 const mongoose = require("mongoose")
 const path = require("path");
 
-//nodemon ./to-do-list-project/main.js
-
 const app = express()
 mongoose.connect("mongodb://localhost:27017/to-do-list");
 app.use(express.json());
